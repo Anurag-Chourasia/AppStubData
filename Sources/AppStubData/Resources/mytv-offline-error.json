@@ -1,0 +1,6 @@
+{
+  "status": "offline",
+  "code": -1009,
+  "error": "URLErrorNotConnectedToInternet",
+  "message": "The Internet connection appears to be offline."
+}

@@ -1,0 +1,56 @@
+[
+  {
+    "channel": "bbc-news.uk",
+    "feed": null,
+    "tags": ["primary", "dark"],
+    "width": 512,
+    "height": 512,
+    "format": "PNG",
+    "url": "https://fixture.invalid/logos/bbc-news.png"
+  },
+  {
+    "channel": "france24.fr",
+    "feed": null,
+    "tags": ["primary"],
+    "width": 512,
+    "height": 512,
+    "format": "PNG",
+    "url": "https://fixture.invalid/logos/france24.png"
+  },
+  {
+    "channel": "dw-english.de",
+    "feed": null,
+    "tags": ["vector"],
+    "width": 256,
+    "height": 256,
+    "format": "SVG",
+    "url": "https://fixture.invalid/logos/dw.svg"
+  },
+  {
+    "channel": "redbull-tv.at",
+    "feed": null,
+    "tags": ["primary"],
+    "width": 400,
+    "height": 400,
+    "format": "JPEG",
+    "url": "https://fixture.invalid/logos/redbull.jpg"
+  },
+  {
+    "channel": "nasa-tv.us",
+    "feed": null,
+    "tags": ["meatball"],
+    "width": 600,
+    "height": 600,
+    "format": "PNG",
+    "url": "https://fixture.invalid/logos/nasa.png"
+  },
+  {
+    "channel": "dd-india.in",
+    "feed": null,
+    "tags": ["official"],
+    "width": 512,
+    "height": 512,
+    "format": "PNG",
+    "url": "https://fixture.invalid/logos/dd-india.png"
+  }
+]
