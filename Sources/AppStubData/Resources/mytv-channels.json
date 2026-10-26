@@ -1,0 +1,22 @@
+[
+  {
+    "id": "debug-news",
+    "name": "Demo News",
+    "country": "IN",
+    "categories": [
+      "news"
+    ],
+    "isNSFW": false,
+    "hasStreams": false
+  },
+  {
+    "id": "debug-science",
+    "name": "Demo Science",
+    "country": "GB",
+    "categories": [
+      "science"
+    ],
+    "isNSFW": false,
+    "hasStreams": false
+  }
+]
