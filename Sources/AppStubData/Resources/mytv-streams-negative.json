@@ -1,8 +1,10 @@
 [
   {
-    "channel": "invalid-channel",
-    "title": "Corrupt Stream",
-    "url": null,
+    "broken_channel": null,
+    "missing_url": true
+  },
+  {
+    "url": "not-a-valid-url-format",
     "quality": 1080
   }
 ]
