@@ -1,51 +1,64 @@
 # AppStubData
 
-Shared synthetic JSON fixtures for **ShowBook** and **myTV**, consumed as a pinned Git submodule and Swift package. No personal accounts, credentials, live artwork, or playable remote streams.
+Shared synthetic JSON fixtures for multi-project architecture (including **ShowBook**, **myTV**, and future projects), consumed as a pinned Git submodule and Swift package.
 
-## Overview
+## Project Enum Architecture
 
-`AppStubData` supplies deterministic mock fixtures and scenarios generated from live & structured network logs:
+The `Fixtures.Project` enum defines all supported consumer projects:
 
-- **Scenarios**:
-  - `positive`: Realistic success payloads with valid domain models (books, channels, streams, logos, countries, IP).
-  - `empty`: Valid response envelopes containing 0 items (empty lists/dictionaries).
-  - `negative`: Well-formed error responses (e.g. 400 Bad Request, 404 Not Found, 500 Server Error, or offline transport failure).
+```swift
+public enum Project: String, CaseIterable, Sendable {
+    case myTV = "mytv"
+    case showBook = "showbook"
+    // Add new projects here as the monorepo/ecosystem expands:
+    // case motivationDaily = "motivationdaily"
+}
+```
 
-## Endpoints
+### Adding a New Project
+1. Add the case to `Fixtures.Project` (e.g. `case motivationDaily = "motivationdaily"`).
+2. Place JSON fixtures inside `Sources/AppStubData/Resources/` named with the convention:
+   - `{project}-{endpoint}-{scenario}.json` (e.g., `motivationdaily-quotes-positive.json`)
+   - `{project}-{fixtureName}.json` (e.g., `motivationdaily-defaults.json`)
+3. Access fixtures via:
+   ```swift
+   let data = try Fixtures.data(for: .motivationDaily, endpoint: "quotes", scenario: .positive)
+   ```
 
-### ShowBook
-- `search`: Open Library search (`/search.json`)
-- `discover`: Subject recommendations (`/search.json?q=subject:...`)
-- `work`: Work details (`/works/{id}.json`)
-- `editions`: Edition catalog (`/works/{id}/editions.json`)
-- `edition`: Single edition book (`/books/{id}.json`)
-- `countries`: First.org countries API (`/data/v1/countries`)
-- `ip`: IP-API geolocation (`/json`)
+---
 
-### myTV
-- `channels`: IPTV-org channels list (`/api/channels.json`)
-- `streams`: IPTV-org live streams (`/api/streams.json`)
-- `logos`: IPTV-org logo catalog (`/api/logos.json`)
-- `categories`: IPTV-org channel categories (`/api/categories.json`)
-- Dedicated error payloads: `mytvErrorResponse()`, `mytvOfflineError()`
+## Scenarios
+
+- `positive`: Realistic success payloads with valid domain models.
+- `empty`: Valid response envelopes containing 0 items (`[]` or empty containers).
+- `negative`: Well-formed error responses (e.g. 400 Bad Request, 404 Not Found, 500 Server Error, or offline transport failure).
+
+---
 
 ## Usage
 
+### 1. Project-Scoped Access (Extensible for all projects)
 ```swift
 import AppStubData
 
-// ShowBook fixtures
+// Load using Project enum:
+let myTVChannels = try Fixtures.data(for: .myTV, endpoint: "channels", scenario: .positive)
+let showBookSearch = try Fixtures.data(for: .showBook, endpoint: "search", scenario: .positive)
+let myTVConfig = try Fixtures.data(for: .myTV, name: "channels")
+```
+
+### 2. Typed Project Helpers
+```swift
+// ShowBook
 let searchData = try Fixtures.showbook(endpoint: .search, scenario: .positive)
 let emptyDiscover = try Fixtures.showbook(endpoint: .discover, scenario: .empty)
 
-// myTV fixtures
+// myTV
 let channelsData = try Fixtures.mytv(endpoint: .channels, scenario: .positive)
 let emptyStreams = try Fixtures.mytv(endpoint: .streams, scenario: .empty)
-
-// Generic access
-let rawData = try Fixtures.data("mytv-channels")
-let rawString = try Fixtures.string("showbook-0")
 ```
+
+---
 
 ## Testing
 
