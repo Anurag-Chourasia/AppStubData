@@ -1,62 +1,77 @@
 # AppStubData
 
-Shared synthetic JSON fixtures for multi-project architecture (including **ShowBook**, **myTV**, and future projects), consumed as a pinned Git submodule and Swift package.
+Shared synthetic JSON fixtures for multi-project architecture (including **ShowBook**, **myTV**, **Motivation Daily**, and future projects), consumed as a pinned Git submodule and Swift package.
 
-## Project Enum Architecture
+## Fluent Project & Endpoint Architecture
 
-The `Fixtures.Project` enum defines all supported consumer projects:
+The `Fixtures` package provides a fluent, type-safe builder API across projects, endpoints, and scenarios:
 
+```swift
+// Fluent Builder API:
+let quotesData = try Fixtures.data(for: .motivationDaily).endpoint(.quotes).scenario(.positive)
+let channelsData = try Fixtures.data(for: .myTV).endpoint(.channels).scenario(.positive)
+let bookSearch = try Fixtures.data(for: .showBook).endpoint(.search).scenario(.positive)
+
+// Fluent String Builder:
+let quoteText = try Fixtures.string(for: .motivationDaily).endpoint(.quotes).scenario(.positive)
+```
+
+---
+
+## Enums
+
+### 1. `Fixtures.Project`
 ```swift
 public enum Project: String, CaseIterable, Sendable {
     case myTV = "mytv"
     case showBook = "showbook"
-    // Add new projects here as the monorepo/ecosystem expands:
-    // case motivationDaily = "motivationdaily"
+    case motivationDaily = "motivationdaily"
+    // Extend here for new apps
 }
 ```
 
-### Adding a New Project
-1. Add the case to `Fixtures.Project` (e.g. `case motivationDaily = "motivationdaily"`).
-2. Place JSON fixtures inside `Sources/AppStubData/Resources/` named with the convention:
-   - `{project}-{endpoint}-{scenario}.json` (e.g., `motivationdaily-quotes-positive.json`)
-   - `{project}-{fixtureName}.json` (e.g., `motivationdaily-defaults.json`)
-3. Access fixtures via:
-   ```swift
-   let data = try Fixtures.data(for: .motivationDaily, endpoint: "quotes", scenario: .positive)
-   ```
+### 2. `Fixtures.Endpoint`
+```swift
+public enum Endpoint: String, CaseIterable, Sendable {
+    // ShowBook
+    case search
+    case discover
+    case work
+    case editions
+    case edition
+    case countries
+    case ip
 
----
+    // myTV
+    case channels
+    case streams
+    case logos
+    case categories
 
-## Scenarios
+    // MotivationDaily
+    case quotes
+    case authors
+}
+```
 
+### 3. `Fixtures.Scenario`
 - `positive`: Realistic success payloads with valid domain models.
 - `empty`: Valid response envelopes containing 0 items (`[]` or empty containers).
 - `negative`: Well-formed error responses (e.g. 400 Bad Request, 404 Not Found, 500 Server Error, or offline transport failure).
 
 ---
 
-## Usage
+## Adding a New Project & Endpoints
 
-### 1. Project-Scoped Access (Extensible for all projects)
-```swift
-import AppStubData
-
-// Load using Project enum:
-let myTVChannels = try Fixtures.data(for: .myTV, endpoint: "channels", scenario: .positive)
-let showBookSearch = try Fixtures.data(for: .showBook, endpoint: "search", scenario: .positive)
-let myTVConfig = try Fixtures.data(for: .myTV, name: "channels")
-```
-
-### 2. Typed Project Helpers
-```swift
-// ShowBook
-let searchData = try Fixtures.showbook(endpoint: .search, scenario: .positive)
-let emptyDiscover = try Fixtures.showbook(endpoint: .discover, scenario: .empty)
-
-// myTV
-let channelsData = try Fixtures.mytv(endpoint: .channels, scenario: .positive)
-let emptyStreams = try Fixtures.mytv(endpoint: .streams, scenario: .empty)
-```
+1. **Extend `Fixtures.Project`** (e.g. `case myNewApp = "mynewapp"`).
+2. **Extend `Fixtures.Endpoint`** (e.g. `case feeds`).
+3. **Add JSON fixtures** into `Sources/AppStubData/Resources/` named:
+   - `{project}-{endpoint}-{scenario}.json` (e.g. `mynewapp-feeds-positive.json`, `mynewapp-feeds-empty.json`, `mynewapp-feeds-negative.json`)
+   - `{project}-{fixtureName}.json`
+4. **Access seamlessly**:
+   ```swift
+   let data = try Fixtures.data(for: .myNewApp).endpoint(.feeds).scenario(.positive)
+   ```
 
 ---
 

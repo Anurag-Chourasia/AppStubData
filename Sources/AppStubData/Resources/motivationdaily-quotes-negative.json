@@ -1,0 +1,6 @@
+{
+  "status": "error",
+  "code": 404,
+  "error": "NotFoundError",
+  "message": "No quotes found matching specified criteria."
+}
