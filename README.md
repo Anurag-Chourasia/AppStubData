@@ -85,6 +85,64 @@ Every real endpoint provides three standard deterministic mock scenarios:
 
 ---
 
+## Git Submodule Guide: How to Create and Add in Projects
+
+A dedicated, comprehensive guide is available in [`SUBMODULE_GUIDE.md`](SUBMODULE_GUIDE.md). Below is the complete operational summary:
+
+### 1. How to Create a Submodule from Scratch
+1. **Initialize Git Repo**:
+   ```bash
+   mkdir AppStubData && cd AppStubData
+   git init -b main
+   ```
+2. **Create Package Structure**: Set up `Package.swift` with platforms (iOS 16+, macOS 14+), resources directory (`Sources/AppStubData/Resources`), and test target.
+3. **Add Initial Code & Gitignore**: Exclude `.build/`, `.swiftpm/`, `.DS_Store`. Commit with `git add -A && git commit -m "feat: initial commit"`.
+4. **Publish to GitHub**:
+   ```bash
+   git remote add origin https://github.com/<owner>/AppStubData.git
+   git push -u origin main
+   ```
+
+### 2. How to Add the Submodule to Projects (`ShowBook`, `myTV`)
+In each consumer project root:
+1. **Add Submodule**:
+   ```bash
+   git submodule add https://github.com/<owner>/AppStubData.git Submodules/AppStubData
+   ```
+2. **Commit Submodule Registration**:
+   ```bash
+   git commit -m "feat: add AppStubData submodule"
+   git push origin main
+   ```
+
+### 3. How Teammates & CI Clone Projects with Submodules
+```bash
+# Clone with submodules initialized in one step:
+git clone --recurse-submodules https://github.com/<owner>/<repo>.git
+
+# Or if already cloned:
+git submodule update --init --recursive
+```
+
+### 4. How to Update Submodule Changes Across Projects
+1. **Make, commit, and push changes in `AppStubData` FIRST**:
+   ```bash
+   cd AppStubData
+   git add -A && git commit -m "feat: update fixtures"
+   git push origin main
+   ```
+2. **Pull updates into consumer projects and bump pointer**:
+   ```bash
+   cd <ConsumerProject>/Submodules/AppStubData
+   git pull origin main
+   cd ../..
+   git add Submodules/AppStubData
+   git commit -m "chore: bump AppStubData submodule to latest"
+   git push origin main
+   ```
+
+---
+
 ## Testing
 
 Run tests with:
