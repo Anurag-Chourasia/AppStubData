@@ -1,0 +1,6 @@
+{
+  "status": "error",
+  "code": 500,
+  "error": "RegionsFetchFailed",
+  "message": "Failed to fetch regions."
+}

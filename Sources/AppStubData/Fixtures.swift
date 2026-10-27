@@ -2,6 +2,26 @@ import Foundation
 
 public enum Fixtures {
 
+    // MARK: - Projects Enum
+
+    /// Supported application projects that consume shared fixtures.
+    /// Extend this enum when adding new projects to the submodule.
+    public enum Project: String, CaseIterable, Sendable {
+        case myTV = "mytv"
+        case showBook = "showbook"
+        case motivationDaily = "motivationdaily"
+
+        public var displayName: String {
+            switch self {
+            case .myTV: return "myTV"
+            case .showBook: return "ShowBook"
+            case .motivationDaily: return "Motivation Daily"
+            }
+        }
+
+        public var prefix: String { rawValue }
+    }
+
     // MARK: - Scenarios
 
     public enum Scenario: String, CaseIterable, Sendable {
@@ -10,19 +30,26 @@ public enum Fixtures {
         case negative
     }
 
-    // MARK: - Brand / Project Endpoints
+    // MARK: - Real Brand Endpoints
 
+    /// Real endpoints utilized in the myTV project (IPTV catalog, streams, logos, categories, feeds, etc.).
     public enum MyTVEndpoint: String, CaseIterable, Sendable {
-        case loadTV = "loadtv"
         case channels = "channels"
         case streams = "streams"
         case logos = "logos"
         case categories = "categories"
+        case feeds = "feeds"
+        case languages = "languages"
+        case countries = "countries"
+        case regions = "regions"
+        case allStreams = "allstreams"
     }
 
+    /// Real endpoints utilized in the ShowBook project (search, discover, subjects, work, editions, etc.).
     public enum ShowBookEndpoint: String, CaseIterable, Sendable {
         case search = "search"
         case discover = "discover"
+        case subjects = "subjects"
         case work = "work"
         case editions = "editions"
         case edition = "edition"
@@ -30,22 +57,27 @@ public enum Fixtures {
         case ip = "ip"
     }
 
+    /// Real endpoints utilized in the Motivation Daily project (quotes, authors, wallpapers).
     public enum MotivationDailyEndpoint: String, CaseIterable, Sendable {
         case quotes = "quotes"
         case authors = "authors"
+        case wallpapers = "wallpapers"
     }
 
-    // MARK: - Strongly Typed Brand Project Definition
+    // MARK: - Strongly Typed Brand Phantom Binding
 
-    public struct Project<Endpoint: RawRepresentable & CaseIterable & Sendable>: Sendable where Endpoint.RawValue == String {
-        public let prefix: String
-        public let displayName: String
+    public struct Brand<Endpoint: RawRepresentable & CaseIterable & Sendable>: Sendable where Endpoint.RawValue == String {
+        public let project: Project
+        public var prefix: String { project.prefix }
+        public var displayName: String { project.displayName }
 
-        public init(prefix: String, displayName: String) {
-            self.prefix = prefix
-            self.displayName = displayName
+        public init(project: Project) {
+            self.project = project
         }
     }
+
+    // Backward-compatible typealias
+    public typealias ProjectScope<Endpoint: RawRepresentable & CaseIterable & Sendable> = Brand<Endpoint> where Endpoint.RawValue == String
 
     // MARK: - Core Loaders
 
@@ -62,23 +94,23 @@ public enum Fixtures {
 
     // MARK: - Fluent Query Builders: Fixtures.data(for: .brand).endpoint(.ep).scenario(.sc)
 
-    public static func data<E>(for project: Project<E>) -> ProjectDataQuery<E> {
-        ProjectDataQuery(project: project)
+    public static func data<E>(for brand: Brand<E>) -> BrandDataQuery<E> {
+        BrandDataQuery(brand: brand)
     }
 
-    public static func string<E>(for project: Project<E>) -> ProjectStringQuery<E> {
-        ProjectStringQuery(project: project)
+    public static func string<E>(for brand: Brand<E>) -> BrandStringQuery<E> {
+        BrandStringQuery(brand: brand)
     }
 
-    public struct ProjectDataQuery<E: RawRepresentable & CaseIterable & Sendable>: Sendable where E.RawValue == String {
-        public let project: Project<E>
+    public struct BrandDataQuery<E: RawRepresentable & CaseIterable & Sendable>: Sendable where E.RawValue == String {
+        public let brand: Brand<E>
 
         public func endpoint(_ endpoint: E) -> ScenarioDataQuery {
-            ScenarioDataQuery(prefix: project.prefix, endpointName: endpoint.rawValue)
+            ScenarioDataQuery(prefix: brand.prefix, endpointName: endpoint.rawValue)
         }
 
         public func fixture(_ name: String) throws -> Data {
-            try Fixtures.data("\(project.prefix)-\(name)")
+            try Fixtures.data("\(brand.prefix)-\(name)")
         }
     }
 
@@ -95,15 +127,15 @@ public enum Fixtures {
         }
     }
 
-    public struct ProjectStringQuery<E: RawRepresentable & CaseIterable & Sendable>: Sendable where E.RawValue == String {
-        public let project: Project<E>
+    public struct BrandStringQuery<E: RawRepresentable & CaseIterable & Sendable>: Sendable where E.RawValue == String {
+        public let brand: Brand<E>
 
         public func endpoint(_ endpoint: E) -> ScenarioStringQuery {
-            ScenarioStringQuery(prefix: project.prefix, endpointName: endpoint.rawValue)
+            ScenarioStringQuery(prefix: brand.prefix, endpointName: endpoint.rawValue)
         }
 
         public func fixture(_ name: String) throws -> String {
-            try Fixtures.string("\(project.prefix)-\(name)")
+            try Fixtures.string("\(brand.prefix)-\(name)")
         }
     }
 
@@ -116,6 +148,24 @@ public enum Fixtures {
         }
     }
 
+    // MARK: - Project Enum-Based Loaders
+
+    public static func data(for project: Project, endpoint: String, scenario: Scenario) throws -> Data {
+        try data("\(project.prefix)-\(endpoint)-\(scenario.rawValue)")
+    }
+
+    public static func string(for project: Project, endpoint: String, scenario: Scenario) throws -> String {
+        try string("\(project.prefix)-\(endpoint)-\(scenario.rawValue)")
+    }
+
+    public static func data(for project: Project, name: String) throws -> Data {
+        try data("\(project.prefix)-\(name)")
+    }
+
+    public static func string(for project: Project, name: String) throws -> String {
+        try string("\(project.prefix)-\(name)")
+    }
+
     // MARK: - Direct / String Dynamic Loaders
 
     public static func data(for prefix: String, endpoint: String, scenario: Scenario) throws -> Data {
@@ -126,7 +176,7 @@ public enum Fixtures {
         try string("\(prefix)-\(endpoint)-\(scenario.rawValue)")
     }
 
-    // MARK: - Legacy / Helper Typed Shortcuts
+    // MARK: - Typed Helper Shortcuts
 
     public static func showbook(endpoint: ShowBookEndpoint, scenario: Scenario) throws -> Data {
         try data(for: .showBook).endpoint(endpoint).scenario(scenario)
@@ -144,6 +194,14 @@ public enum Fixtures {
         try string(for: .myTV).endpoint(endpoint).scenario(scenario)
     }
 
+    public static func motivationDaily(endpoint: MotivationDailyEndpoint, scenario: Scenario) throws -> Data {
+        try data(for: .motivationDaily).endpoint(endpoint).scenario(scenario)
+    }
+
+    public static func motivationDailyString(endpoint: MotivationDailyEndpoint, scenario: Scenario) throws -> String {
+        try string(for: .motivationDaily).endpoint(endpoint).scenario(scenario)
+    }
+
     public static func mytvErrorResponse() throws -> Data {
         try data("mytv-error-response")
     }
@@ -153,26 +211,34 @@ public enum Fixtures {
     }
 }
 
-// MARK: - Project Brand Definitions
+// MARK: - Brand Static Definitions
 
-extension Fixtures.Project where Endpoint == Fixtures.MyTVEndpoint {
-    public static var myTV: Fixtures.Project<Fixtures.MyTVEndpoint> {
-        Fixtures.Project<Fixtures.MyTVEndpoint>(prefix: "mytv", displayName: "myTV")
+extension Fixtures.Brand where Endpoint == Fixtures.MyTVEndpoint {
+    public static var myTV: Fixtures.Brand<Fixtures.MyTVEndpoint> {
+        Fixtures.Brand(project: .myTV)
+    }
+
+    public static var MyTV: Fixtures.Brand<Fixtures.MyTVEndpoint> {
+        myTV
     }
 }
 
-extension Fixtures.Project where Endpoint == Fixtures.ShowBookEndpoint {
-    public static var showBook: Fixtures.Project<Fixtures.ShowBookEndpoint> {
-        Fixtures.Project<Fixtures.ShowBookEndpoint>(prefix: "showbook", displayName: "ShowBook")
+extension Fixtures.Brand where Endpoint == Fixtures.ShowBookEndpoint {
+    public static var showBook: Fixtures.Brand<Fixtures.ShowBookEndpoint> {
+        Fixtures.Brand(project: .showBook)
     }
 
-    public static var ShowBook: Fixtures.Project<Fixtures.ShowBookEndpoint> {
+    public static var ShowBook: Fixtures.Brand<Fixtures.ShowBookEndpoint> {
         showBook
     }
 }
 
-extension Fixtures.Project where Endpoint == Fixtures.MotivationDailyEndpoint {
-    public static var motivationDaily: Fixtures.Project<Fixtures.MotivationDailyEndpoint> {
-        Fixtures.Project<Fixtures.MotivationDailyEndpoint>(prefix: "motivationdaily", displayName: "Motivation Daily")
+extension Fixtures.Brand where Endpoint == Fixtures.MotivationDailyEndpoint {
+    public static var motivationDaily: Fixtures.Brand<Fixtures.MotivationDailyEndpoint> {
+        Fixtures.Brand(project: .motivationDaily)
+    }
+
+    public static var MotivationDaily: Fixtures.Brand<Fixtures.MotivationDailyEndpoint> {
+        motivationDaily
     }
 }

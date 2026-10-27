@@ -1,0 +1,4 @@
+{
+  "format": "m3u",
+  "playlist": "#EXTM3U\n#EXTINF:-1 tvg-id=\"002RadioTV.do\" tvg-name=\"002 Radio TV\" group-title=\"General\",002 Radio TV\nhttps://example.com/live/002.m3u8\n#EXTINF:-1 tvg-id=\"10.au\" tvg-name=\"10\" group-title=\"News\",10 News\nhttps://example.com/live/10.m3u8"
+}

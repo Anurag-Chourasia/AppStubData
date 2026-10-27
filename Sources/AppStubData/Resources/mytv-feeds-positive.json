@@ -1,0 +1,12 @@
+[
+  {
+    "id": "feed.002radiotv.do",
+    "name": "002 Radio TV Main Feed",
+    "channel": "002RadioTV.do"
+  },
+  {
+    "id": "feed.10.au",
+    "name": "Channel 10 National Feed",
+    "channel": "10.au"
+  }
+]

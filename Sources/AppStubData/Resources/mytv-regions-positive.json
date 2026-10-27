@@ -1,0 +1,32 @@
+[
+  {
+    "code": "AMER",
+    "name": "Americas",
+    "countries": [
+      "US",
+      "CA",
+      "DO",
+      "UY",
+      "BR"
+    ]
+  },
+  {
+    "code": "APAC",
+    "name": "Asia-Pacific",
+    "countries": [
+      "IN",
+      "AU",
+      "JP"
+    ]
+  },
+  {
+    "code": "EMEA",
+    "name": "Europe, Middle East, and Africa",
+    "countries": [
+      "GB",
+      "FR",
+      "DE",
+      "DK"
+    ]
+  }
+]

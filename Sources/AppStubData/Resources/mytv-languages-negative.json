@@ -1,0 +1,6 @@
+{
+  "status": "error",
+  "code": 500,
+  "error": "LanguagesFetchFailed",
+  "message": "Failed to fetch languages."
+}

@@ -1,0 +1,6 @@
+{
+  "status": "error",
+  "code": 500,
+  "error": "FeedsFetchFailed",
+  "message": "Failed to fetch feeds."
+}

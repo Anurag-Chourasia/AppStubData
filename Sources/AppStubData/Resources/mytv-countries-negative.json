@@ -1,0 +1,6 @@
+{
+  "status": "error",
+  "code": 500,
+  "error": "CountriesFetchFailed",
+  "message": "Failed to fetch countries."
+}

@@ -3,33 +3,37 @@ import XCTest
 
 final class FixturesTests: XCTestCase {
 
+    func testProjectEnumProperties() {
+        XCTAssertEqual(Fixtures.Project.myTV.prefix, "mytv")
+        XCTAssertEqual(Fixtures.Project.myTV.displayName, "myTV")
+        XCTAssertEqual(Fixtures.Project.showBook.prefix, "showbook")
+        XCTAssertEqual(Fixtures.Project.showBook.displayName, "ShowBook")
+        XCTAssertEqual(Fixtures.Project.motivationDaily.prefix, "motivationdaily")
+        XCTAssertEqual(Fixtures.Project.motivationDaily.displayName, "Motivation Daily")
+        XCTAssertEqual(Set(Fixtures.Project.allCases.map(\.rawValue)), Set(["mytv", "showbook", "motivationdaily"]))
+    }
+
     func testUserRequestedBrandEndpointScenarios() throws {
-        // Line 1: try Fixtures.data(for: .motivationDaily).endpoint(.quotes).scenario(.positive)
+        // Motivation Daily quotes positive
         let quotesData = try Fixtures.data(for: .motivationDaily).endpoint(.quotes).scenario(.positive)
         XCTAssertFalse(quotesData.isEmpty)
         let quotes = try JSONSerialization.jsonObject(with: quotesData) as? [[String: Any]]
         XCTAssertEqual(quotes?.count, 3)
 
-        // Line 2: try Fixtures.data(for: .myTV).endpoint(.loadTV).scenario(.negative)
-        let loadTVData = try Fixtures.data(for: .myTV).endpoint(.loadTV).scenario(.negative)
-        XCTAssertFalse(loadTVData.isEmpty)
-        let loadTVError = try JSONSerialization.jsonObject(with: loadTVData) as? [String: Any]
-        XCTAssertEqual(loadTVError?["code"] as? Int, 500)
+        // myTV real endpoint negative (channels malformed scenario)
+        let tvChannelsNegativeData = try Fixtures.data(for: .myTV).endpoint(.channels).scenario(.negative)
+        XCTAssertFalse(tvChannelsNegativeData.isEmpty)
+        let malformedChannels = try JSONSerialization.jsonObject(with: tvChannelsNegativeData) as? [[String: Any]]
+        XCTAssertEqual(malformedChannels?.first?["unexpected_field"] as? Int, 12345)
 
-        // Line 3: try Fixtures.data(for: .ShowBook).endpoint(.search).scenario(.empty)
+        // ShowBook real endpoint empty (.ShowBook and .showBook)
         let searchEmptyData = try Fixtures.data(for: .ShowBook).endpoint(.search).scenario(.empty)
         XCTAssertFalse(searchEmptyData.isEmpty)
         let searchEmpty = try JSONSerialization.jsonObject(with: searchEmptyData) as? [String: Any]
         XCTAssertEqual(searchEmpty?["numFound"] as? Int, 0)
-    }
 
-    func testBrandSpecificEndpointScoping() {
-        // Verifies Project metadata
-        XCTAssertEqual(Fixtures.Project.myTV.prefix, "mytv")
-        XCTAssertEqual(Fixtures.Project.myTV.displayName, "myTV")
-        XCTAssertEqual(Fixtures.Project.showBook.prefix, "showbook")
-        XCTAssertEqual(Fixtures.Project.ShowBook.prefix, "showbook")
-        XCTAssertEqual(Fixtures.Project.motivationDaily.prefix, "motivationdaily")
+        let searchEmptyDataLower = try Fixtures.data(for: .showBook).endpoint(.search).scenario(.empty)
+        XCTAssertEqual(searchEmptyDataLower, searchEmptyData)
     }
 
     func testAllShowBookEndpointsAndScenarios() throws {
@@ -38,6 +42,12 @@ final class FixturesTests: XCTestCase {
                 let data = try Fixtures.data(for: .showBook).endpoint(endpoint).scenario(scenario)
                 XCTAssertFalse(data.isEmpty, "ShowBook \(endpoint.rawValue) [\(scenario.rawValue)] should not be empty")
                 XCTAssertNotNil(try JSONSerialization.jsonObject(with: data))
+
+                let dataCapitalized = try Fixtures.data(for: .ShowBook).endpoint(endpoint).scenario(scenario)
+                XCTAssertEqual(dataCapitalized, data)
+
+                let str = try Fixtures.string(for: .showBook).endpoint(endpoint).scenario(scenario)
+                XCTAssertFalse(str.isEmpty)
             }
         }
     }
@@ -48,6 +58,12 @@ final class FixturesTests: XCTestCase {
                 let data = try Fixtures.data(for: .myTV).endpoint(endpoint).scenario(scenario)
                 XCTAssertFalse(data.isEmpty, "MyTV \(endpoint.rawValue) [\(scenario.rawValue)] should not be empty")
                 XCTAssertNotNil(try JSONSerialization.jsonObject(with: data))
+
+                let dataCapitalized = try Fixtures.data(for: .MyTV).endpoint(endpoint).scenario(scenario)
+                XCTAssertEqual(dataCapitalized, data)
+
+                let str = try Fixtures.string(for: .myTV).endpoint(endpoint).scenario(scenario)
+                XCTAssertFalse(str.isEmpty)
             }
         }
     }
@@ -58,16 +74,47 @@ final class FixturesTests: XCTestCase {
                 let data = try Fixtures.data(for: .motivationDaily).endpoint(endpoint).scenario(scenario)
                 XCTAssertFalse(data.isEmpty, "MotivationDaily \(endpoint.rawValue) [\(scenario.rawValue)] should not be empty")
                 XCTAssertNotNil(try JSONSerialization.jsonObject(with: data))
+
+                let str = try Fixtures.string(for: .motivationDaily).endpoint(endpoint).scenario(scenario)
+                XCTAssertFalse(str.isEmpty)
             }
         }
+    }
+
+    func testProjectEnumScopedLoader() throws {
+        let channelsData = try Fixtures.data(for: .myTV, endpoint: "channels", scenario: .positive)
+        XCTAssertFalse(channelsData.isEmpty)
+
+        let searchData = try Fixtures.data(for: .showBook, endpoint: "search", scenario: .positive)
+        XCTAssertFalse(searchData.isEmpty)
+
+        let quotesData = try Fixtures.data(for: .motivationDaily, endpoint: "quotes", scenario: .positive)
+        XCTAssertFalse(quotesData.isEmpty)
+
+        let channelsNameData = try Fixtures.data(for: .myTV, name: "channels")
+        XCTAssertFalse(channelsNameData.isEmpty)
     }
 
     func testStringFluentQueries() throws {
         let quoteString = try Fixtures.string(for: .motivationDaily).endpoint(.quotes).scenario(.positive)
         XCTAssertTrue(quoteString.contains("Steve Jobs"))
 
-        let tvString = try Fixtures.string(for: .myTV).endpoint(.loadTV).scenario(.negative)
-        XCTAssertTrue(tvString.contains("LoadTVFailed"))
+        let tvChannelsString = try Fixtures.string(for: .myTV).endpoint(.channels).scenario(.negative)
+        XCTAssertTrue(tvChannelsString.contains("unexpected_field"))
+
+        let feedsNegativeString = try Fixtures.string(for: .myTV).endpoint(.feeds).scenario(.negative)
+        XCTAssertTrue(feedsNegativeString.contains("FeedsFetchFailed"))
+    }
+
+    func testMyTVErrorAndOfflineShortcuts() throws {
+        let errData = try Fixtures.mytvErrorResponse()
+        let errJSON = try JSONSerialization.jsonObject(with: errData) as? [String: Any]
+        XCTAssertEqual(errJSON?["code"] as? Int, 500)
+
+        let offlineData = try Fixtures.mytvOfflineError()
+        let offlineJSON = try JSONSerialization.jsonObject(with: offlineData) as? [String: Any]
+        XCTAssertEqual(offlineJSON?["code"] as? Int, -1009)
+        XCTAssertEqual(offlineJSON?["domain"] as? String, "NSURLErrorDomain")
     }
 
     func testAllLegacyFixturesContainValidJSON() throws {
@@ -80,5 +127,6 @@ final class FixturesTests: XCTestCase {
 
     func testMissingFixtureThrows() {
         XCTAssertThrowsError(try Fixtures.data("nonexistent_fixture_file"))
+        XCTAssertThrowsError(try Fixtures.data(for: .myTV, endpoint: "nonexistent", scenario: .positive))
     }
 }

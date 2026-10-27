@@ -1,0 +1,18 @@
+[
+  {
+    "id": "101",
+    "author": "Picsum Artist",
+    "width": 1920,
+    "height": 1080,
+    "url": "https://picsum.photos/id/101/1920/1080",
+    "download_url": "https://picsum.photos/id/101/1920/1080"
+  },
+  {
+    "id": "102",
+    "author": "Scenic Nature",
+    "width": 1920,
+    "height": 1080,
+    "url": "https://picsum.photos/id/102/1920/1080",
+    "download_url": "https://picsum.photos/id/102/1920/1080"
+  }
+]

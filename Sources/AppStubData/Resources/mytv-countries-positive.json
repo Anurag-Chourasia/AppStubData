@@ -1,0 +1,35 @@
+[
+  {
+    "code": "US",
+    "name": "United States",
+    "flag": "🇺🇸",
+    "languages": [
+      "eng"
+    ]
+  },
+  {
+    "code": "IN",
+    "name": "India",
+    "flag": "🇮🇳",
+    "languages": [
+      "hin",
+      "eng"
+    ]
+  },
+  {
+    "code": "AU",
+    "name": "Australia",
+    "flag": "🇦🇺",
+    "languages": [
+      "eng"
+    ]
+  },
+  {
+    "code": "DO",
+    "name": "Dominican Republic",
+    "flag": "🇩🇴",
+    "languages": [
+      "spa"
+    ]
+  }
+]

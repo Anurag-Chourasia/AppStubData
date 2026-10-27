@@ -1,0 +1,6 @@
+{
+  "status": "error",
+  "code": 404,
+  "error": "PlaylistNotFound",
+  "message": "The requested M3U playlist index could not be found."
+}
