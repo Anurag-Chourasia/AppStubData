@@ -149,3 +149,13 @@ Run tests with:
 ```bash
 DEVELOPER_DIR="/Applications/Xcode 27.1.app/Contents/Developer" xcrun swift test --scratch-path /tmp/AppStubDataBuild
 ```
+
+## Developer and UI fixture catalogs (IOS-65)
+
+Three additive resource files preserve host developer/UI-test data for migration:
+
+- `showbook-developer-responses.json`: success, empty and showcase response bodies for six endpoint families. Request routing, pagination and offline transport errors stay host-owned.
+- `mytv-developer-catalog.json`: two success channels, eight showcase channels and two stream templates. Hosts build channel-specific IDs and decode their own domain models.
+- `motivationdaily-ui-fixtures.json`: fixture-only gradient pixels, seed favorite text/identity, category counts and random quote count. UIKit image rendering and fixture orchestration stay in the host. These are not runtime design tokens.
+
+These catalogs are data only; adding them does not switch any application's fixture source or submodule pin. Consume resources directly from the pinned Git submodule in test/Debug scope; no local AppStubData module linkage is required. Keep Release resource/symbol checks when integrating. Existing endpoint scenario APIs and payloads remain unchanged.
