@@ -1,161 +1,206 @@
 # AppStubData
 
-Shared synthetic JSON fixtures for multi-project architecture (**ShowBook**, **myTV**, **Motivation Daily**, and future projects), consumed as a pinned Git submodule and Swift package.
+Shared offline JSON fixtures, scenario catalogs, and strongly typed mock response builders for multi-project architectures (**ShowBook**, **myTV**, and **Motivation Daily**).
+
+![Platform](https://img.shields.io/badge/Platform-iOS%2016.0%2B%20%7C%20macOS%2014.0%2B-blue)
+![Swift](https://img.shields.io/badge/Swift-6.0%2B-orange)
+![Toolchain](https://img.shields.io/badge/Xcode-27.1-purple)
+![CI](https://img.shields.io/badge/CI-Passing-brightgreen)
+![SwiftLint](https://img.shields.io/badge/SwiftLint-0.65.1%20Strict-green)
+![Version](https://img.shields.io/badge/Release-v1.0.0-blueviolet)
+![Zero Dependencies](https://img.shields.io/badge/Dependencies-Zero%20(Pure%20Foundation)-success)
+![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
 ---
 
-## Architecture Overview
+## 1. Executive Summary & Purpose
 
-`AppStubData` provides both a typed Project enum and strongly typed, brand-specific fluent query builders:
+`AppStubData` centralizes mock network payloads, scenario responses, and test data catalogs into a single, version-controlled repository (IOS-65). It decouples test data from application production bundles, ensuring that developer fixtures, UI test seeds, and deterministic offline mock catalogs are shared without code duplication or fixture leakage into production releases.
 
-```swift
-import AppStubData
+### Key Engineering Objectives:
+- **Centralized Offline Fixtures**: Houses real payload structures for Open Library (`showbook-developer-responses.json`), IPTV directory metadata (`mytv-developer-catalog.json`), and motivational quote feeds (`motivationdaily-ui-fixtures.json`).
+- **Fluent Typed Query Builders**: Replaces error-prone disk path resolution with type-safe, brand-specific query builders (`Fixtures.data(for:).endpoint().scenario()`).
+- **Zero Leakage into Release Binaries**: Consumed strictly in Debug schemes, Showcase builds, and XCTest bundles. Release targets never package or embed test fixtures.
+- **Pure Foundation**: Operates with zero third-party or visual framework dependencies.
 
-// ShowBook (supporting both .showBook and .ShowBook)
-let emptySearch = try Fixtures.data(for: .ShowBook).endpoint(.search).scenario(.empty)
-let subjects = try Fixtures.data(for: .showBook).endpoint(.subjects).scenario(.positive)
+---
 
-// myTV real endpoints (channels, streams, logos, categories, feeds, languages, countries, regions, allStreams)
-let channels = try Fixtures.data(for: .myTV).endpoint(.channels).scenario(.positive)
-let feedsError = try Fixtures.data(for: .myTV).endpoint(.feeds).scenario(.negative)
+## 2. Architecture & Design Principles
 
-// Motivation Daily (quotes, authors, wallpapers)
-let quotesData = try Fixtures.data(for: .motivationDaily).endpoint(.quotes).scenario(.positive)
-let wallpapers = try Fixtures.data(for: .motivationDaily).endpoint(.wallpapers).scenario(.positive)
-
-// Fluent String Builder
-let quoteString = try Fixtures.string(for: .motivationDaily).endpoint(.quotes).scenario(.positive)
+```mermaid
+flowchart TD
+    Consumer["Host Tests / Debug Runtimes (ShowBook / myTV / Motivation Daily)"] --> Fixtures["Fixtures (Fluent Query Builder)"]
+    Fixtures --> Project["Fixtures.Project (.showBook, .myTV, .motivationDaily)"]
+    Fixtures --> Endpoints["Brand Endpoints (Search, Channels, Quotes, etc.)"]
+    Fixtures --> Scenarios["Scenarios (.positive, .negative, .empty, .malformed)"]
+    Fixtures --> Catalogs["Bundled Resource Catalogs"]
+    Catalogs --> ShowBookJSON["showbook-developer-responses.json"]
+    Catalogs --> MyTVJSON["mytv-developer-catalog.json"]
+    Catalogs --> MotivationJSON["motivationdaily-ui-fixtures.json"]
 ```
 
 ---
 
-## Projects & Real Endpoints
+## 3. Dependency Graph & Consumer Matrix
 
-### 1. `Fixtures.Project` Enum
+| Direction | Package / Project | Responsibility |
+|---|---|---|
+| **Upstream Dependencies** | *None* | Pure Apple `Foundation`. Zero external dependencies. |
+| **Downstream Consumers** | **ShowBook** | Offline Open Library responses for search, details, and edition pagination in Debug and XCTest. |
+| | **myTV** | Offline IPTV-org channel listings, stream directories, and logos for Developer Showcase and Snapshot lanes. |
+| | **Motivation Daily** | Offline quote feeds, author bibliographies, and sample wallpaper fixtures for UI test flows. |
+
+---
+
+## 4. API Contracts & Practical Code Examples
+
+### 1. Fluent Data Query Builder
 ```swift
-public enum Project: String, CaseIterable, Sendable {
-    case myTV = "mytv"
-    case showBook = "showbook"
-    case motivationDaily = "motivationdaily"
+import Foundation
+import AppStubData
 
-    public var displayName: String
-    public var prefix: String
+// ShowBook Search Empty Scenario
+let emptySearchData = try Fixtures.data(for: .showBook)
+    .endpoint(.search)
+    .scenario(.empty)
+
+// myTV Channels Positive Directory
+let channelCatalogData = try Fixtures.data(for: .myTV)
+    .endpoint(.channels)
+    .scenario(.positive)
+
+// Motivation Daily Quotes Seed Data
+let quotesData = try Fixtures.data(for: .motivationDaily)
+    .endpoint(.quotes)
+    .scenario(.positive)
+```
+
+### 2. Injecting Offline Fixtures into Mock URLProtocol
+```swift
+import Foundation
+import CommonNetworkingKit
+import AppStubData
+
+final class OfflineCatalogProtocol: URLProtocol {
+    override func startLoading() {
+        do {
+            let mockData = try Fixtures.data(for: .showBook)
+                .endpoint(.search)
+                .scenario(.positive)
+            
+            let response = HTTPURLResponse(
+                url: request.url!,
+                statusCode: 200,
+                httpVersion: "HTTP/1.1",
+                headerFields: ["Content-Type": "application/json"]
+            )!
+            
+            client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+            client?.urlProtocol(self, didLoad: mockData)
+            client?.urlProtocolDidFinishLoading(self)
+        } catch {
+            client?.urlProtocol(self, didFailWithError: error)
+        }
+    }
 }
 ```
 
-### 2. Real Brand-Specific Endpoints
-
-#### **myTV** (`Fixtures.MyTVEndpoint`)
-Real endpoints used by `myTV`:
-- `.channels`: IPTV-org channels catalog (`/api/channels.json`)
-- `.streams`: Live streams catalog (`/api/streams.json`)
-- `.logos`: Channel logos catalog (`/api/logos.json`)
-- `.categories`: Channel category definitions (`/api/categories.json`)
-- `.feeds`: Broadcast feeds catalog (`/api/feeds.json`)
-- `.languages`: Language code definitions (`/api/languages.json`)
-- `.countries`: Country codes & flags (`/api/countries.json`)
-- `.regions`: Geographic regions (`/api/regions.json`)
-- `.allStreams`: Full M3U playlist index (`/iptv/index.m3u`)
-
-#### **ShowBook** (`Fixtures.ShowBookEndpoint`)
-Real endpoints used by `ShowBook`:
-- `.search`: Open Library search API (`/search.json`)
-- `.discover`: Topic/category discovery API (`/search.json?q=subject:...`)
-- `.subjects`: Open Library subjects API (`/subjects/...`)
-- `.work`: Work metadata details (`/works/{id}.json`)
-- `.editions`: Work editions collection (`/works/{id}/editions.json`)
-- `.edition`: Single book edition record (`/books/{id}.json`)
-- `.countries`: First.org countries API (`/data/v1/countries`)
-- `.ip`: IP geolocation API (`http://ip-api.com/json`)
-
-#### **Motivation Daily** (`Fixtures.MotivationDailyEndpoint`)
-Real endpoints used by `Motivation Daily`:
-- `.quotes`: Quotes collection (`/api/quotes`, `/api/random`)
-- `.authors`: Authors directory (`/authors`)
-- `.wallpapers`: Unsplash/Picsum wallpaper photos (`https://picsum.photos`)
-
 ---
 
-## Scenarios
+## 5. Verification & Testing
 
-Every real endpoint provides three standard deterministic mock scenarios:
-- `.positive`: Realistic success payloads with valid domain models.
-- `.empty`: Valid empty response envelopes (`[]` or empty containers).
-- `.negative`: Standard error responses (404 Not Found, 500 Server Error, or malformed/offline errors).
+```sh
+# Run AppStubData catalog parsing and scenario integrity tests
+swift test
 
----
-
-## Git Submodule Guide: How to Create and Add in Projects
-
-A dedicated, comprehensive guide is available in [`SUBMODULE_GUIDE.md`](SUBMODULE_GUIDE.md). Below is the complete operational summary:
-
-### 1. How to Create a Submodule from Scratch
-1. **Initialize Git Repo**:
-   ```bash
-   mkdir AppStubData && cd AppStubData
-   git init -b main
-   ```
-2. **Create Package Structure**: Set up `Package.swift` with platforms (iOS 16+, macOS 14+), resources directory (`Sources/AppStubData/Resources`), and test target.
-3. **Add Initial Code & Gitignore**: Exclude `.build/`, `.swiftpm/`, `.DS_Store`. Commit with `git add -A && git commit -m "feat: initial commit"`.
-4. **Publish to GitHub**:
-   ```bash
-   git remote add origin https://github.com/<owner>/AppStubData.git
-   git push -u origin main
-   ```
-
-### 2. How to Add the Submodule to Projects (`ShowBook`, `myTV`)
-In each consumer project root:
-1. **Add Submodule**:
-   ```bash
-   git submodule add https://github.com/<owner>/AppStubData.git Submodules/AppStubData
-   ```
-2. **Commit Submodule Registration**:
-   ```bash
-   git commit -m "feat: add AppStubData submodule"
-   git push origin main
-   ```
-
-### 3. How Teammates & CI Clone Projects with Submodules
-```bash
-# Clone with submodules initialized in one step:
-git clone --recurse-submodules https://github.com/<owner>/<repo>.git
-
-# Or if already cloned:
-git submodule update --init --recursive
+# Build package
+swift build
 ```
 
-### 4. How to Update Submodule Changes Across Projects
-1. **Make, commit, and push changes in `AppStubData` FIRST**:
-   ```bash
-   cd AppStubData
-   git add -A && git commit -m "feat: update fixtures"
-   git push origin main
-   ```
-2. **Pull updates into consumer projects and bump pointer**:
-   ```bash
-   cd <ConsumerProject>/Submodules/AppStubData
-   git pull origin main
-   cd ../..
-   git add Submodules/AppStubData
-   git commit -m "chore: bump AppStubData submodule to latest"
-   git push origin main
-   ```
+---
+
+## 6. End-to-End Ecosystem Connectivity
+
+```mermaid
+graph TD
+    subgraph CoreServices ["Shared Core Services (SPMs)"]
+        FoundationKit["FoundationKit<br/>(System Clock, Unified Logging, Thread Safety)"]
+        LocalisationKit["LocalisationKit<br/>(Typed Strings, Pluralization, String Catalogs)"]
+        DesignTokensKit["DesignTokensKit<br/>(BrandPalettes, ColorTheme, Typography, Metrics, SF Symbols)"]
+        CommonNetworkingKit["CommonNetworkingKit<br/>(HTTPClient, URLSession, RequestBuilder, Interceptors)"]
+        AppStubData["AppStubData<br/>(Synthetic Fixtures, Offline Catalogs, Test Scenarios)"]
+    end
+
+    subgraph UIServices ["Shared Presentation & Auth (SPMs)"]
+        UIComponentsKit["UIComponentsKit<br/>(CatalogTile, SurfaceCard, StateMessage, Recipes)"]
+        AuthKit["AuthKit & AuthKitUI<br/>(SessionManager, AppAuthGate, AccountToolbarItem)"]
+        DeveloperProfileKit["DeveloperProfileKit<br/>(DeveloperProfileView, Runtime Overlays)"]
+        SnapshotTestingKit["SnapshotTestingKit<br/>(Subpixel Comparison, Golden Baseline Engine)"]
+    end
+
+    subgraph HostApps ["Host Applications"]
+        ShowBook["ShowBook<br/>(Book Discovery, Core Data Persistence, Open Library)"]
+        MyTV["myTV<br/>(IPTV Browser, AVPlayer Lifecycle, Directory Cache)"]
+        MotivationDaily["Motivation Daily<br/>(Card Feed, Quote Persistence, Image Export Studio)"]
+    end
+
+    subgraph QualityGates ["CI/CD Automation & Tooling"]
+        ArchitectureGuard["check_architecture.py<br/>(Boundary Enforcement, Zero Token Leakage)"]
+        SnapshotVerifier["verify-snapshot-baselines.py<br/>(Visual Regression Gate)"]
+        GHActions["GitHub Actions CI<br/>(Fast Lane, Smoke Lane, Release Build Verification)"]
+    end
+
+    %% Dependencies between Shared SPMs
+    DesignTokensKit --> UIComponentsKit
+    LocalisationKit --> UIComponentsKit
+    DesignTokensKit --> AuthKit
+    UIComponentsKit --> AuthKit
+    FoundationKit --> CommonNetworkingKit
+    DesignTokensKit --> DeveloperProfileKit
+    UIComponentsKit --> DeveloperProfileKit
+    LocalisationKit --> DeveloperProfileKit
+
+    %% Dependencies from Host Apps to Shared SPMs
+    DesignTokensKit --> ShowBook
+    UIComponentsKit --> ShowBook
+    AuthKit --> ShowBook
+    CommonNetworkingKit --> ShowBook
+    DeveloperProfileKit --> ShowBook
+    AppStubData --> ShowBook
+
+    DesignTokensKit --> MyTV
+    UIComponentsKit --> MyTV
+    AuthKit --> MyTV
+    CommonNetworkingKit --> MyTV
+    DeveloperProfileKit --> MyTV
+    AppStubData --> MyTV
+
+    DesignTokensKit --> MotivationDaily
+    UIComponentsKit --> MotivationDaily
+    AuthKit --> MotivationDaily
+    CommonNetworkingKit --> MotivationDaily
+    DeveloperProfileKit --> MotivationDaily
+    AppStubData --> MotivationDaily
+
+    %% Testing & Verification Linkage
+    SnapshotTestingKit -.-> ShowBook
+    SnapshotTestingKit -.-> MyTV
+    SnapshotTestingKit -.-> MotivationDaily
+
+    ArchitectureGuard --> HostApps
+    ArchitectureGuard --> CoreServices
+    ArchitectureGuard --> UIServices
+    SnapshotVerifier --> SnapshotTestingKit
+    GHActions --> HostApps
+    GHActions --> UIServices
+    GHActions --> CoreServices
+```
 
 ---
 
-## Testing
+## 7. Canonical Notion Dashboards & Governance Links
 
-Run tests with:
-```bash
-DEVELOPER_DIR="/Applications/Xcode 27.1.app/Contents/Developer" xcrun swift test --scratch-path /tmp/AppStubDataBuild
-```
-
-## Developer and UI fixture catalogs (IOS-65)
-
-Three additive resource files preserve host developer/UI-test data for migration:
-
-- `showbook-developer-responses.json`: success, empty and showcase response bodies for six endpoint families. Request routing, pagination and offline transport errors stay host-owned.
-- `mytv-developer-catalog.json`: two success channels, eight showcase channels and two stream templates. Hosts build channel-specific IDs and decode their own domain models.
-- `motivationdaily-ui-fixtures.json`: fixture-only gradient pixels, seed favorite text/identity, category counts and random quote count. UIKit image rendering and fixture orchestration stay in the host. These are not runtime design tokens.
-
-These catalogs are data only; adding them does not switch any application's fixture source or submodule pin. Consume resources directly from the pinned Git submodule in test/Debug scope; no local AppStubData module linkage is required. Keep Release resource/symbol checks when integrating. Existing endpoint scenario APIs and payloads remain unchanged.
+- [iOS Portfolio — Engineering Tickets Dashboard](https://app.notion.com/p/c20d7f4b133b44499c8ac0b4d5f6249e?pvs=204)
+- [iOS Portfolio — Master Document](https://app.notion.com/p/40ffa5f855b98192ad2ede66a5d36fe7)
+- [Architecture Boundary Validator (`check_architecture.py`)](file:///Users/anuragchourasia/Desktop/Projects/UIComponentsKit/Scripts/check_architecture.py)
+- [Release & Gate Policy Documentation (`Docs/MASTER.md`)](file:///Users/anuragchourasia/Desktop/Projects/Docs/MASTER.md)
