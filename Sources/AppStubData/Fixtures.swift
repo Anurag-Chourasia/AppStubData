@@ -186,6 +186,75 @@ public enum Fixtures {
         try string(for: .showBook).endpoint(endpoint).scenario(scenario)
     }
 
+    // MARK: - ShowBook Typed Accessors & Namespace
+
+    public enum ShowBook {
+        public static func data(endpoint: ShowBookEndpoint, scenario: Scenario = .positive) throws -> Data {
+            try Fixtures.data(for: .showBook).endpoint(endpoint).scenario(scenario)
+        }
+
+        public static func string(endpoint: ShowBookEndpoint, scenario: Scenario = .positive) throws -> String {
+            try Fixtures.string(for: .showBook).endpoint(endpoint).scenario(scenario)
+        }
+
+        public static func developerResponses() throws -> Data {
+            try Fixtures.data("showbook-developer-responses")
+        }
+
+        public static func developerResponse(scenario: String, route: String) throws -> Data {
+            let catalogData = try developerResponses()
+            guard let catalog = try JSONSerialization.jsonObject(with: catalogData) as? [String: [String: Any]],
+                  let payload = catalog[scenario]?[route] else {
+                throw CocoaError(.fileNoSuchFile)
+            }
+            return try JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys])
+        }
+
+        public static func search(scenario: Scenario = .positive) throws -> Data {
+            try data(endpoint: .search, scenario: scenario)
+        }
+
+        public static func discover(scenario: Scenario = .positive) throws -> Data {
+            try data(endpoint: .discover, scenario: scenario)
+        }
+
+        public static func subjects(scenario: Scenario = .positive) throws -> Data {
+            try data(endpoint: .subjects, scenario: scenario)
+        }
+
+        public static func work(scenario: Scenario = .positive) throws -> Data {
+            try data(endpoint: .work, scenario: scenario)
+        }
+
+        public static func editions(scenario: Scenario = .positive) throws -> Data {
+            try data(endpoint: .editions, scenario: scenario)
+        }
+
+        public static func edition(scenario: Scenario = .positive) throws -> Data {
+            try data(endpoint: .edition, scenario: scenario)
+        }
+
+        public static func countries(scenario: Scenario = .positive) throws -> Data {
+            try data(endpoint: .countries, scenario: scenario)
+        }
+
+        public static func ip(scenario: Scenario = .positive) throws -> Data {
+            try data(endpoint: .ip, scenario: scenario)
+        }
+
+        public static func books() throws -> Data {
+            try Fixtures.data("showbook-books")
+        }
+    }
+
+    public static func showbookDeveloperResponses() throws -> Data {
+        try ShowBook.developerResponses()
+    }
+
+    public static func showbookDeveloperResponsesString() throws -> String {
+        try string("showbook-developer-responses")
+    }
+
     public static func mytv(endpoint: MyTVEndpoint, scenario: Scenario) throws -> Data {
         try data(for: .myTV).endpoint(endpoint).scenario(scenario)
     }

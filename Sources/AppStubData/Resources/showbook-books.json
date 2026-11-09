@@ -1,0 +1,14 @@
+{
+  "docs": [
+    {
+      "key": "/works/OL45804W",
+      "title": "Fixture Book",
+      "author_name": [
+        "Fixture Author"
+      ],
+      "cover_i": 123,
+      "ratings_average": 4.5,
+      "ratings_count": 7
+    }
+  ]
+}

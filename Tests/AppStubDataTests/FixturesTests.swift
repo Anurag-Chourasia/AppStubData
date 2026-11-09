@@ -129,4 +129,50 @@ final class FixturesTests: XCTestCase {
         XCTAssertThrowsError(try Fixtures.data("nonexistent_fixture_file"))
         XCTAssertThrowsError(try Fixtures.data(for: .myTV, endpoint: "nonexistent", scenario: .positive))
     }
+
+    func testShowBookTypedAccessors() throws {
+        let searchData = try Fixtures.ShowBook.search()
+        XCTAssertFalse(searchData.isEmpty)
+        let search = try JSONSerialization.jsonObject(with: searchData) as? [String: Any]
+        XCTAssertEqual(search?["numFound"] as? Int, 1)
+
+        let discoverData = try Fixtures.ShowBook.discover()
+        XCTAssertFalse(discoverData.isEmpty)
+
+        let subjectsData = try Fixtures.ShowBook.subjects()
+        XCTAssertFalse(subjectsData.isEmpty)
+
+        let workData = try Fixtures.ShowBook.work()
+        XCTAssertFalse(workData.isEmpty)
+
+        let editionsData = try Fixtures.ShowBook.editions()
+        XCTAssertFalse(editionsData.isEmpty)
+
+        let editionData = try Fixtures.ShowBook.edition()
+        XCTAssertFalse(editionData.isEmpty)
+
+        let countriesData = try Fixtures.ShowBook.countries()
+        XCTAssertFalse(countriesData.isEmpty)
+
+        let ipData = try Fixtures.ShowBook.ip()
+        XCTAssertFalse(ipData.isEmpty)
+
+        let booksData = try Fixtures.ShowBook.books()
+        XCTAssertFalse(booksData.isEmpty)
+        let books = try JSONSerialization.jsonObject(with: booksData) as? [String: Any]
+        let docs = try XCTUnwrap(books?["docs"] as? [[String: Any]])
+        XCTAssertEqual(docs.first?["title"] as? String, "Fixture Book")
+
+        let devCatalogData = try Fixtures.showbookDeveloperResponses()
+        XCTAssertFalse(devCatalogData.isEmpty)
+
+        let devCatalogString = try Fixtures.showbookDeveloperResponsesString()
+        XCTAssertTrue(devCatalogString.contains("showcase"))
+
+        let payload = try Fixtures.ShowBook.developerResponse(scenario: "success", route: "search")
+        XCTAssertFalse(payload.isEmpty)
+
+        let searchStr = try Fixtures.ShowBook.string(endpoint: .search, scenario: .positive)
+        XCTAssertTrue(searchStr.contains("The Hobbit"))
+    }
 }
