@@ -1,0 +1,10 @@
+{
+  "_id": "uitest-quote-1",
+  "content": "Life is what happens when you're busy making other plans.",
+  "author": "John Lennon",
+  "tags": [
+    "life"
+  ],
+  "authorSlug": "john-lennon",
+  "length": 57
+}

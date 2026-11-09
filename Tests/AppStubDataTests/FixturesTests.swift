@@ -175,4 +175,91 @@ final class FixturesTests: XCTestCase {
         let searchStr = try Fixtures.ShowBook.string(endpoint: .search, scenario: .positive)
         XCTAssertTrue(searchStr.contains("The Hobbit"))
     }
+
+    func testMyTVTypedAccessors() throws {
+        let channels = try Fixtures.MyTV.channels()
+        XCTAssertFalse(channels.isEmpty)
+
+        let streams = try Fixtures.MyTV.streams()
+        XCTAssertFalse(streams.isEmpty)
+
+        let allStreams = try Fixtures.MyTV.allStreams()
+        XCTAssertFalse(allStreams.isEmpty)
+
+        let logos = try Fixtures.MyTV.logos()
+        XCTAssertFalse(logos.isEmpty)
+
+        let categories = try Fixtures.MyTV.categories()
+        XCTAssertFalse(categories.isEmpty)
+
+        let feeds = try Fixtures.MyTV.feeds()
+        XCTAssertFalse(feeds.isEmpty)
+
+        let languages = try Fixtures.MyTV.languages()
+        XCTAssertFalse(languages.isEmpty)
+
+        let countries = try Fixtures.MyTV.countries()
+        XCTAssertFalse(countries.isEmpty)
+
+        let regions = try Fixtures.MyTV.regions()
+        XCTAssertFalse(regions.isEmpty)
+
+        let devCatalog = try Fixtures.MyTV.developerCatalog()
+        XCTAssertFalse(devCatalog.isEmpty)
+
+        let devCatalogStr = try Fixtures.MyTV.developerCatalogString()
+        XCTAssertTrue(devCatalogStr.contains("showcase"))
+
+        let showcaseStreams = try Fixtures.MyTV.showcaseStreams()
+        XCTAssertFalse(showcaseStreams.isEmpty)
+        let streamObjects = try XCTUnwrap(JSONSerialization.jsonObject(with: showcaseStreams) as? [[String: Any]])
+        XCTAssertEqual(streamObjects.count, 2)
+
+        let err = try Fixtures.MyTV.errorResponse()
+        XCTAssertFalse(err.isEmpty)
+
+        let offline = try Fixtures.MyTV.offlineError()
+        XCTAssertFalse(offline.isEmpty)
+
+        let topDevCatalog = try Fixtures.mytvDeveloperCatalog()
+        XCTAssertEqual(topDevCatalog, devCatalog)
+
+        let topShowcaseStreams = try Fixtures.mytvShowcaseStreams()
+        XCTAssertEqual(topShowcaseStreams, showcaseStreams)
+    }
+
+    func testMotivationDailyTypedAccessors() throws {
+        let quotes = try Fixtures.MotivationDaily.quotes()
+        XCTAssertFalse(quotes.isEmpty)
+
+        let authors = try Fixtures.MotivationDaily.authors()
+        XCTAssertFalse(authors.isEmpty)
+
+        let wallpapers = try Fixtures.MotivationDaily.wallpapers()
+        XCTAssertFalse(wallpapers.isEmpty)
+
+        let uiFixtures = try Fixtures.MotivationDaily.uiFixtures()
+        XCTAssertFalse(uiFixtures.isEmpty)
+
+        let uiFixturesStr = try Fixtures.MotivationDaily.uiFixturesString()
+        XCTAssertTrue(uiFixturesStr.contains("gradientPalettes"))
+
+        let zenQuotes = try Fixtures.MotivationDaily.zenQuotes()
+        XCTAssertFalse(zenQuotes.isEmpty)
+        let zenList = try XCTUnwrap(JSONSerialization.jsonObject(with: zenQuotes) as? [[String: Any]])
+        XCTAssertEqual(zenList.first?["a"] as? String, "Steve Jobs")
+
+        let quotable = try Fixtures.MotivationDaily.quotable()
+        XCTAssertFalse(quotable.isEmpty)
+        let quotableObj = try XCTUnwrap(JSONSerialization.jsonObject(with: quotable) as? [String: Any])
+        XCTAssertEqual(quotableObj["author"] as? String, "John Lennon")
+
+        let adviceSlip = try Fixtures.MotivationDaily.adviceSlip()
+        XCTAssertFalse(adviceSlip.isEmpty)
+        let adviceObj = try XCTUnwrap(JSONSerialization.jsonObject(with: adviceSlip) as? [String: Any])
+        XCTAssertNotNil(adviceObj["slip"])
+
+        let topUIFixtures = try Fixtures.motivationDailyUIFixtures()
+        XCTAssertEqual(topUIFixtures, uiFixtures)
+    }
 }

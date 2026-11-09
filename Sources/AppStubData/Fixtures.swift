@@ -263,12 +263,136 @@ public enum Fixtures {
         try string(for: .myTV).endpoint(endpoint).scenario(scenario)
     }
 
+    // MARK: - MyTV Typed Accessors & Namespace
+
+    public enum MyTV {
+        public static func data(endpoint: MyTVEndpoint, scenario: Scenario = .positive) throws -> Data {
+            try Fixtures.data(for: .myTV).endpoint(endpoint).scenario(scenario)
+        }
+
+        public static func string(endpoint: MyTVEndpoint, scenario: Scenario = .positive) throws -> String {
+            try Fixtures.string(for: .myTV).endpoint(endpoint).scenario(scenario)
+        }
+
+        public static func channels(scenario: Scenario = .positive) throws -> Data {
+            try data(endpoint: .channels, scenario: scenario)
+        }
+
+        public static func streams(scenario: Scenario = .positive) throws -> Data {
+            try data(endpoint: .streams, scenario: scenario)
+        }
+
+        public static func allStreams(scenario: Scenario = .positive) throws -> Data {
+            try data(endpoint: .allStreams, scenario: scenario)
+        }
+
+        public static func logos(scenario: Scenario = .positive) throws -> Data {
+            try data(endpoint: .logos, scenario: scenario)
+        }
+
+        public static func categories(scenario: Scenario = .positive) throws -> Data {
+            try data(endpoint: .categories, scenario: scenario)
+        }
+
+        public static func feeds(scenario: Scenario = .positive) throws -> Data {
+            try data(endpoint: .feeds, scenario: scenario)
+        }
+
+        public static func languages(scenario: Scenario = .positive) throws -> Data {
+            try data(endpoint: .languages, scenario: scenario)
+        }
+
+        public static func countries(scenario: Scenario = .positive) throws -> Data {
+            try data(endpoint: .countries, scenario: scenario)
+        }
+
+        public static func regions(scenario: Scenario = .positive) throws -> Data {
+            try data(endpoint: .regions, scenario: scenario)
+        }
+
+        public static func developerCatalog() throws -> Data {
+            try Fixtures.data("mytv-developer-catalog")
+        }
+
+        public static func developerCatalogString() throws -> String {
+            try Fixtures.string("mytv-developer-catalog")
+        }
+
+        public static func showcaseStreams() throws -> Data {
+            try Fixtures.data("mytv-showcase-streams")
+        }
+
+        public static func errorResponse() throws -> Data {
+            try Fixtures.data("mytv-error-response")
+        }
+
+        public static func offlineError() throws -> Data {
+            try Fixtures.data("mytv-offline-error")
+        }
+    }
+
+    public static func mytvDeveloperCatalog() throws -> Data {
+        try MyTV.developerCatalog()
+    }
+
+    public static func mytvShowcaseStreams() throws -> Data {
+        try MyTV.showcaseStreams()
+    }
+
     public static func motivationDaily(endpoint: MotivationDailyEndpoint, scenario: Scenario) throws -> Data {
         try data(for: .motivationDaily).endpoint(endpoint).scenario(scenario)
     }
 
     public static func motivationDailyString(endpoint: MotivationDailyEndpoint, scenario: Scenario) throws -> String {
         try string(for: .motivationDaily).endpoint(endpoint).scenario(scenario)
+    }
+
+    // MARK: - Motivation Daily Typed Accessors & Namespace
+
+    public enum MotivationDaily {
+        public static func data(endpoint: MotivationDailyEndpoint, scenario: Scenario = .positive) throws -> Data {
+            try Fixtures.data(for: .motivationDaily).endpoint(endpoint).scenario(scenario)
+        }
+
+        public static func string(endpoint: MotivationDailyEndpoint, scenario: Scenario = .positive) throws -> String {
+            try Fixtures.string(for: .motivationDaily).endpoint(endpoint).scenario(scenario)
+        }
+
+        public static func quotes(scenario: Scenario = .positive) throws -> Data {
+            try data(endpoint: .quotes, scenario: scenario)
+        }
+
+        public static func authors(scenario: Scenario = .positive) throws -> Data {
+            try data(endpoint: .authors, scenario: scenario)
+        }
+
+        public static func wallpapers(scenario: Scenario = .positive) throws -> Data {
+            try data(endpoint: .wallpapers, scenario: scenario)
+        }
+
+        public static func uiFixtures() throws -> Data {
+            try Fixtures.data("motivationdaily-ui-fixtures")
+        }
+
+        public static func uiFixturesString() throws -> String {
+            try Fixtures.string("motivationdaily-ui-fixtures")
+        }
+
+        public static func zenQuotes() throws -> Data {
+            try Fixtures.data("motivationdaily-zenquotes")
+        }
+
+        public static func quotable() throws -> Data {
+            try Fixtures.data("motivationdaily-quotable")
+        }
+
+        public static func adviceSlip() throws -> Data {
+            try Fixtures.data("motivationdaily-adviceslip")
+        }
+    }
+
+    public static func motivationDailyUIFixtures() throws -> Data {
+        try MotivationDaily.uiFixtures()
     }
 
     public static func mytvErrorResponse() throws -> Data {
